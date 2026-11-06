@@ -2,7 +2,7 @@
 
 A polished, browser-based clone of the classic Flappy Bird game, built entirely with vanilla JavaScript and HTML5 Canvas. No external game engines or build tools required—just open and play.
 
-**[▶️ Play Live](https://trusty-rivulet-s3rn.here.now/)**
+**[▶️ Play Live](https://nguyenchivot-create.github.io/flappybird/)**
 
 ---
 
