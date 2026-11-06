@@ -109,17 +109,16 @@ class Game {
       this.previousState = null;
       this.reset();
       this.state = STATES.PLAYING;
-      this.sound.swoosh();
       if (this.onStateChange) this.onStateChange(this.state);
     }
   }
 
-  die(hitGround = false) {
+  die() {
     if (this.state !== STATES.PLAYING) return;
     this.state = STATES.DEAD;
 
     this.sound.hit();
-    if (!hitGround) this.sound.fall();
+    this.sound.die();
 
     if (this.score > this.bestScore) {
       this.bestScore = this.score;
@@ -200,7 +199,7 @@ class Game {
 
       if (this.bird.y + this.bird.radius >= this.height - CONSTANTS.GROUND_HEIGHT) {
         this.bird.y = this.height - CONSTANTS.GROUND_HEIGHT - this.bird.radius;
-        this.die(true);
+        this.die();
       }
 
       if (this.bird.y - this.bird.radius <= 0) {
@@ -235,7 +234,7 @@ class Game {
 
   addScore(amount = 1) {
     this.score += amount;
-    this.sound.point();
+    this.sound.score();
     if (this.onScoreChange) this.onScoreChange(this.score);
   }
 }

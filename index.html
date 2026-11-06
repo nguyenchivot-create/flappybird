@@ -11,7 +11,18 @@
     <canvas id="game-canvas"></canvas>
 
     <!-- Mute toggle -->
-    <button id="btn-mute" title="Toggle sound (M)" aria-label="Toggle sound">🔊</button>
+    <div class="audio-controls">
+      <button id="btn-audio-settings" title="Volume" aria-label="Volume settings">🎚️</button>
+      <button id="btn-mute" title="Toggle sound (M)" aria-label="Toggle sound">🔊</button>
+    </div>
+    <div id="audio-panel" class="audio-panel hidden">
+      <label>Music
+        <input type="range" id="music-volume" min="0" max="100" step="1">
+      </label>
+      <label>Effects
+        <input type="range" id="sfx-volume" min="0" max="100" step="1">
+      </label>
+    </div>
 
     <!-- Score HUD -->
     <div id="score-hud" class="hidden">

@@ -32,10 +32,13 @@
   const btnCloseLeaderboard = document.getElementById('btn-close-leaderboard');
   const btnClearLeaderboard = document.getElementById('btn-clear-leaderboard');
   const btnMute = document.getElementById('btn-mute');
+  const btnAudioSettings = document.getElementById('btn-audio-settings');
+  const audioPanel = document.getElementById('audio-panel');
+  const musicSlider = document.getElementById('music-volume');
+  const sfxSlider = document.getElementById('sfx-volume');
 
   let pendingNameScore = 0;
   let hasPromptedName = false;
-  let medalPlayed = false;
   let nameEntryTimeout = null;
 
   function resizeCanvas() {
@@ -52,7 +55,6 @@
   game.onStateChange = (state) => {
     if (state === STATES.PLAYING) {
       hasPromptedName = false;
-      medalPlayed = false;
       clearTimeout(nameEntryTimeout);
       nameEntryTimeout = null;
     }
@@ -80,6 +82,19 @@
     e.stopPropagation();
     toggleMute();
     btnMute.blur(); // keep Space from re-triggering the button
+  });
+
+  // Volume sliders
+  musicSlider.value = Math.round(game.sound.musicVolume * 100);
+  sfxSlider.value = Math.round(game.sound.sfxVolume * 100);
+  musicSlider.addEventListener('input', () => game.sound.setMusicVolume(musicSlider.value / 100));
+  sfxSlider.addEventListener('input', () => game.sound.setSfxVolume(sfxSlider.value / 100));
+  // Let go of keyboard focus after dragging so Space flaps again
+  [musicSlider, sfxSlider].forEach((s) => s.addEventListener('change', () => s.blur()));
+  btnAudioSettings.addEventListener('click', (e) => {
+    e.stopPropagation();
+    audioPanel.classList.toggle('hidden');
+    btnAudioSettings.blur();
   });
 
   game.input.onStart = () => {};
@@ -116,10 +131,6 @@
       // Medal
       if (game.score >= 10) {
         medalRow.classList.remove('hidden');
-        if (!medalPlayed) {
-          medalPlayed = true;
-          game.sound.medal();
-        }
         if (game.score >= 30) medalEmoji.textContent = '🥇';
         else if (game.score >= 20) medalEmoji.textContent = '🥈';
         else medalEmoji.textContent = '🥉';

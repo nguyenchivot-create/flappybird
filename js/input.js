@@ -57,14 +57,14 @@ class Input {
   handlePointerDown(e) {
     if (e.button !== 0) return;
     // Ignore if the target is a button, input, or other interactive element
-    if (e.target.closest('button, input, .btn, .btn-group')) return;
+    if (e.target.closest('button, input, .btn, .btn-group, .audio-panel')) return;
     e.preventDefault();
     this.handleAction('flap');
   }
 
   handleTouchStart(e) {
     // Ignore if the target is a button, input, or other interactive element
-    if (e.target.closest('button, input, .btn, .btn-group')) return;
+    if (e.target.closest('button, input, .btn, .btn-group, .audio-panel')) return;
     e.preventDefault();
     this.handleAction('flap');
   }
