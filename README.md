@@ -1,6 +1,6 @@
 # 🐦 Flappy Bird Clone
 
-A polished, browser-based clone of the classic Flappy Bird game, built entirely with vanilla JavaScript and HTML5 Canvas. No external game engines or build tools required—just open and play.
+A polished, browser-based clone of the classic Flappy Bird game, built entirely with vanilla JavaScript and HTML5 Canvas. No game engine, libraries or build step: just static files served by any web server.
 
 **[▶️ Play Live](https://nguyenchivot-create.github.io/flappybird/)**
 
@@ -8,16 +8,16 @@ A polished, browser-based clone of the classic Flappy Bird game, built entirely 
 
 ## ✨ Features
 
-- **Smooth 60 FPS gameplay** with a fixed-timestep physics loop
+- **Fixed-timestep physics** (60 updates per second), so the bird behaves the same at any frame rate
 - **Responsive canvas rendering** that adapts to any screen size (desktop, tablet, mobile)
 - **Procedural pipe generation** with randomized gap positions
-- **Full keyboard and touch support** — play with Space, Arrow Up, mouse clicks, or screen taps
+- **Keyboard, mouse and touch support** - play with Space, Arrow Up, Enter, mouse clicks or screen taps
 - **Persistent local leaderboard** via `localStorage` with player names and dates
-- **Medal system** — earn 🥉, 🥈, or 🥇 based on your score
-- **Sound & music** — flap, score, hit and game-over effects plus a looping background track, with separate music/effects volume sliders and a mute toggle (all remembered in `localStorage`)
+- **Medal system** - earn 🥉, 🥈, or 🥇 based on your score
+- **Sound & music** - flap, score, hit and game-over effects plus a looping background track, with separate music/effects volume sliders and a mute toggle (all remembered in `localStorage`)
 - **High-score tracking** saved across browser sessions
 - **Clean, animated UI** with overlays for menu, game over, name entry, and leaderboard
-- **Zero dependencies** — pure vanilla JS, HTML, and CSS
+- **Zero dependencies** - pure vanilla JS, HTML, and CSS
 
 ---
 
@@ -42,8 +42,8 @@ Navigate the bird through the gaps between green pipes without touching them or 
 
 | Score | Medal |
 |-------|-------|
-| 10–19 | 🥉 Bronze |
-| 20–29 | 🥈 Silver |
+| 10-19 | 🥉 Bronze |
+| 20-29 | 🥈 Silver |
 | 30+   | 🥇 Gold |
 
 ---
@@ -89,7 +89,7 @@ The game follows a modular, object-oriented architecture with a central game eng
 
 A standard **fixed-timestep game loop** runs inside `requestAnimationFrame`:
 
-1. `loop(now)` — called every frame via `requestAnimationFrame`.
+1. `loop(now)` - called every frame via `requestAnimationFrame`.
 2. `dt` (delta time) is accumulated.
 3. `fixedUpdate(dt)` runs in discrete `1/60` second steps, keeping physics deterministic regardless of frame rate.
 4. `render()` draws the current state to the canvas.
@@ -116,7 +116,7 @@ Transitions are driven by player input or game events (collisions). `previousSta
 | **Bird** | `js/bird.js` | Bird entity: gravity, flapping, rotation, collision radius, menu idle float, and vector-art rendering |
 | **Pipe Manager** | `js/pipe.js` | Pipe pair spawning, gap randomization, off-screen culling, circle-rectangle collision detection, and pipe rendering |
 | **Ground** | `js/ground.js` | Infinitely scrolling ground tiles with grass, dirt speckles, and tile seams |
-| **Input** | `js/input.js` | Keyboard, mouse, and touch event handling; maps inputs to flap/start/restart/menu actions |
+| **Input** | `js/input.js` | Keyboard, mouse, and touch event handling; maps inputs to flap/start/restart/menu actions and the `M` mute shortcut; ignores keys typed into the name field |
 | **Leaderboard** | `js/leaderboard.js` | `localStorage` CRUD for scores, ranking, high-score checking, top-N retrieval |
 | **Sound** | `js/audio.js` | Loads `public/sounds/*`, music/effects volume channels, mute + volume persistence, first-gesture unlock, anti-overlap limits, synthesized fallbacks |
 | **Main / UI** | `js/main.js` | DOM overlay wiring, button handlers, name-entry modal, leaderboard rendering, HUD updates, canvas resize glue |
@@ -125,10 +125,10 @@ Transitions are driven by player input or game events (collisions). `previousSta
 
 Each frame the canvas is cleared and the following layers are drawn back-to-front:
 
-1. **Sky** — a vertical CSS-like linear gradient (`#4facfe` → `#00f2fe`)
-2. **Pipes** — all active pipe pairs, top and bottom with caps and shadows
-3. **Ground** — scrolling dirt tile pattern with grass top
-4. **Bird** — rotated, procedurally drawn vector bird (body, eye, beak, wing, tail)
+1. **Sky** - a vertical linear gradient (`#4facfe` → `#00f2fe` → `#4facfe`)
+2. **Pipes** - all active pipe pairs, top and bottom with caps and shadows
+3. **Ground** - scrolling dirt tile pattern with grass top
+4. **Bird** - rotated, procedurally drawn vector bird (body, eye, beak, wing, tail)
 
 The canvas uses `devicePixelRatio` scaling so lines and shapes stay crisp on high-DPI displays.
 
@@ -146,7 +146,7 @@ The canvas uses `devicePixelRatio` scaling so lines and shapes stay crisp on hig
 | `PIPE_SPEED_BASE` | `280` px/s | Horizontal scroll speed (scaled to canvas width) |
 | `PIPE_SPAWN_INTERVAL` | `1.5` s | Time between new pipe pairs |
 | `PIPE_WIDTH` | `~12%` of canvas width | Pipe thickness |
-| `PIPE_GAP` | `25%` of canvas height (clamped 120–200 px) | Vertical gap between pipes |
+| `PIPE_GAP` | `25%` of canvas height (clamped 120-200 px) | Vertical gap between pipes |
 | `BIRD_RADIUS` | `~2.5%` of min(width, height) | Collision circle radius |
 | `GROUND_HEIGHT` | `~18%` of canvas height (max 140 px) | Height of the ground strip |
 
@@ -158,7 +158,9 @@ The bird is treated as a **circle**. Each pipe pair is two axis-aligned rectangl
 2. Find the closest Y on the top or bottom pipe to the bird center.
 3. If the distance from that point to the circle center is less than the bird radius, a collision is triggered.
 
-Scoring occurs when the bird’s X position passes the right edge of a pipe pair.
+Touching the ground also ends the run. The top of the screen is a soft ceiling: the bird stops there but does not die.
+
+Scoring occurs when the bird's X position passes the right edge of a pipe pair.
 
 ### Responsive Design
 
@@ -197,7 +199,7 @@ Scoring occurs when the bird’s X position passes the right edge of a pipe pair
 1. Put your own files in `public/sounds/` with **exactly the same names**: `flap.wav`, `score.wav`, `hit.wav`, `die.wav`, `background.mp3`.
 2. Keep effects short (under ~1 s) and trim silence at the start so they feel instant. WAV or MP3 both work as long as the file name and extension match.
 3. For seamless music, export the loop to an exact length (for example a whole number of bars). Leading encoder silence of up to 100 ms is skipped automatically.
-4. To use different names or formats (e.g. `.ogg`), edit the paths in `SOUND_FILES` at the top of `js/audio.js`. Note that Safari on iPhone does not play `.ogg`; prefer `.mp3`, `.m4a` or `.wav`.
+4. To use different names or formats (e.g. `.ogg`), edit the paths in `SOUND_FILES` at the top of `js/audio.js`. `.ogg` does not decode in older Safari versions, so `.mp3`, `.m4a` or `.wav` are the safest choices.
 5. To change how often an effect may repeat, edit `SFX_LIMITS` in the same file.
 6. Hard-refresh the browser (`Ctrl+Shift+R` / `Cmd+Shift+R`) because sound files are cached.
 
@@ -205,7 +207,7 @@ To get the original sounds back, run `python3 tools/generate_sounds.py` (needs P
 
 **Where to find free sounds with a suitable license:** only use files whose license allows your use and follow any attribution it requires.
 
-- [Kenney](https://kenney.nl/assets?q=audio) - game sound packs, CC0 (public domain)
+- [Kenney](https://kenney.nl/assets) - game sound packs, CC0 (public domain)
 - [OpenGameArt](https://opengameart.org/) - filter by CC0 or CC-BY
 - [Freesound](https://freesound.org/) - filter by "Creative Commons 0"; CC-BY files need attribution
 - [jsfxr](https://sfxr.me/) - make your own retro effects in the browser and export them as WAV
@@ -247,9 +249,9 @@ flappybird/
 
 ## 🙏 Credits
 
-- **Original concept**: Dong Nguyen — *Flappy Bird* (2013)
+- **Original concept**: Dong Nguyen - *Flappy Bird* (2013)
 - **Clone implementation**: Built with vanilla JavaScript, HTML5 Canvas, and CSS3
-- **No external libraries** — all graphics are procedurally drawn via the Canvas 2D API
+- **No external libraries** - all graphics are procedurally drawn via the Canvas 2D API
 - **Sounds and music** are original, synthesized from scratch by `tools/generate_sounds.py`, so they carry no third-party copyright
 
 ---
