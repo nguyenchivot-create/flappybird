@@ -52,6 +52,10 @@
             <span>Best</span>
             <span id="best-score">0</span>
           </div>
+          <div class="score-row medal-row hidden" id="rank-row">
+            <span>Leaderboard</span>
+            <span id="rank-value"></span>
+          </div>
           <div class="score-row medal-row hidden" id="medal-row">
             <span>Medal</span>
             <span id="medal-emoji"></span>
@@ -60,18 +64,6 @@
         <div class="btn-group">
           <button id="btn-restart" class="btn btn-primary">Restart</button>
           <button id="btn-leaderboard" class="btn btn-secondary">Leaderboard</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Name Entry Modal -->
-    <div id="name-modal" class="overlay hidden">
-      <div class="panel">
-        <h2>New High Score!</h2>
-        <p>Score: <span id="name-score">0</span></p>
-        <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
-        <div class="btn-group">
-          <button id="btn-save-name" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
@@ -85,7 +77,6 @@
             <thead>
               <tr>
                 <th>Rank</th>
-                <th>Name</th>
                 <th>Score</th>
                 <th>Date</th>
               </tr>

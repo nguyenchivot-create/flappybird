@@ -48,7 +48,7 @@ class Input {
     }
 
     if (e.code === 'Escape') {
-      if (this.game.state === STATES.LEADERBOARD || this.game.state === STATES.NAME_ENTRY) {
+      if (this.game.state === STATES.LEADERBOARD) {
         if (this.onMenu) this.onMenu();
       }
     }

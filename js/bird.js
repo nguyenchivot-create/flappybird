@@ -1,7 +1,76 @@
 /**
  * @fileoverview Bird Entity — handles bird physics (gravity, flapping, velocity
- * clamping), rotation based on fall speed, menu idle floating, and vector-art rendering.
+ * clamping), rotation based on fall speed, menu idle floating, and pixel-art sprite rendering.
  */
+
+/**
+ * Original pixel-art bird (16x14 cells). Each character is one pixel:
+ * '.' transparent, others map to BIRD_SPRITE.palette. The wing is a separate
+ * layer drawn over the body so it can flap between two frames.
+ */
+const BIRD_SPRITE = {
+  width: 16,
+  height: 14,
+  palette: {
+    o: '#3b2414', // outline
+    y: '#ffcf40', // body
+    l: '#fff3b0', // highlight
+    s: '#e8962e', // belly shade
+    a: '#f07c1e', // wing
+    k: '#1b1b1b', // eye
+    w: '#ffffff', // eye glint
+    r: '#ff7a1a', // beak
+    d: '#b84a12'  // beak shadow
+  },
+  body: [
+    '......oo........',
+    '.....oyyo.......',
+    '...oooyooo......',
+    '..oyyyyyyyoo....',
+    '.oyllyyyyyyyo...',
+    '.oylyyyyyyyyyo..',
+    'oyyyyyyyyykwyo..',
+    'oyyyyyyyyykkyoo.',
+    'oyyyyyyyyyyyyorr',
+    'osyyyyyyyyyyyod.',
+    '.osyyyyyyyyyyo..',
+    '..ossyyyyyysso..',
+    '...oossssssoo...',
+    '.....oooooo.....'
+  ],
+  wingDown: [
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '.ooooo..........',
+    'oaaaaao.........',
+    '.oaaaao.........',
+    '..oooo..........',
+    '................',
+    '................'
+  ],
+  wingUp: [
+    '................',
+    '................',
+    '................',
+    '................',
+    '.o..............',
+    'oao.............',
+    'oaaoo...........',
+    'oaaaao..........',
+    '.ooooo..........',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................'
+  ]
+};
 
 class Bird {
   constructor(game) {
@@ -67,93 +136,43 @@ class Bird {
   }
 
   render(ctx) {
+    const sprite = Bird.getSprite(this.frame);
+    // Sprite is ~2.4x the collision radius wide, like the old vector bird.
+    // Whole-number pixel size keeps every "pixel" the same size.
+    const px = Math.max(1, Math.round((this.radius * 2.4) / BIRD_SPRITE.width));
+    const w = BIRD_SPRITE.width * px;
+    const h = BIRD_SPRITE.height * px;
+
     ctx.save();
-    ctx.translate(this.x, this.y);
+    ctx.translate(Math.round(this.x), Math.round(this.y));
     ctx.rotate(this.rotation);
-
-    const r = this.radius;
-    const s = this.radius / 14; // scale factor relative to reference radius 14
-
-    // Body shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    ctx.beginPath();
-    ctx.ellipse(2 * s, 2 * s, r * 1.15, r, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Main body (yellow)
-    ctx.fillStyle = '#f1c40f';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, r * 1.15, r, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Body highlight
-    ctx.fillStyle = '#f9d71c';
-    ctx.beginPath();
-    ctx.ellipse(-2 * s, -3 * s, r * 0.7, r * 0.55, -0.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Outline
-    ctx.strokeStyle = '#d4ac0d';
-    ctx.lineWidth = 1.5 * s;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, r * 1.15, r, 0, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Eye white
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(5 * s, -5 * s, 5 * s, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ddd';
-    ctx.lineWidth = 0.5 * s;
-    ctx.stroke();
-
-    // Eye pupil
-    ctx.fillStyle = '#222';
-    ctx.beginPath();
-    ctx.arc(7 * s, -5 * s, 2.2 * s, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eye shine
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(8 * s, -6 * s, 1 * s, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Beak
-    ctx.fillStyle = '#e67e22';
-    ctx.beginPath();
-    ctx.moveTo(8 * s, 1 * s);
-    ctx.lineTo(18 * s, 5 * s);
-    ctx.lineTo(8 * s, 9 * s);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#d35400';
-    ctx.lineWidth = 1 * s;
-    ctx.stroke();
-
-    // Wing
-    const wingY = this.frame === 1 ? -6 * s : 2 * s;
-    ctx.fillStyle = '#f39c12';
-    ctx.beginPath();
-    ctx.ellipse(-5 * s, wingY, 7 * s, 5 * s, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#d35400';
-    ctx.lineWidth = 1 * s;
-    ctx.stroke();
-
-    // Tail
-    ctx.fillStyle = '#f1c40f';
-    ctx.beginPath();
-    ctx.moveTo(-r, 2 * s);
-    ctx.lineTo(-r - 6 * s, -2 * s);
-    ctx.lineTo(-r - 6 * s, 6 * s);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#d4ac0d';
-    ctx.lineWidth = 1 * s;
-    ctx.stroke();
-
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(sprite, -Math.round(w / 2), -Math.round(h / 2), w, h);
     ctx.restore();
+  }
+
+  /** Builds (once) a 1-pixel-per-cell canvas for each animation frame. */
+  static getSprite(frame) {
+    if (!Bird._sprites) {
+      Bird._sprites = [BIRD_SPRITE.wingDown, BIRD_SPRITE.wingUp].map((wing) => {
+        const c = document.createElement('canvas');
+        c.width = BIRD_SPRITE.width;
+        c.height = BIRD_SPRITE.height;
+        const g = c.getContext('2d');
+        const layers = [BIRD_SPRITE.body, wing];
+        for (const rows of layers) {
+          rows.forEach((row, y) => {
+            for (let x = 0; x < row.length; x++) {
+              const color = BIRD_SPRITE.palette[row[x]];
+              if (!color) continue;
+              g.fillStyle = color;
+              g.fillRect(x, y, 1, 1);
+            }
+          });
+        }
+        return c;
+      });
+    }
+    return Bird._sprites[frame === 1 ? 1 : 0];
   }
 }

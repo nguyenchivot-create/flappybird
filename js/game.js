@@ -7,8 +7,7 @@ const STATES = {
   MENU: 'MENU',
   PLAYING: 'PLAYING',
   DEAD: 'DEAD',
-  LEADERBOARD: 'LEADERBOARD',
-  NAME_ENTRY: 'NAME_ENTRY'
+  LEADERBOARD: 'LEADERBOARD'
 };
 
 const CONSTANTS = {
@@ -134,21 +133,7 @@ class Game {
     if (this.onStateChange) this.onStateChange(this.state);
   }
 
-  showNameEntry() {
-    this.previousState = this.state;
-    this.state = STATES.NAME_ENTRY;
-    if (this.onStateChange) this.onStateChange(this.state);
-  }
-
   hideLeaderboard() {
-    if (this.previousState) {
-      this.state = this.previousState;
-      this.previousState = null;
-      if (this.onStateChange) this.onStateChange(this.state);
-    }
-  }
-
-  restoreState() {
     if (this.previousState) {
       this.state = this.previousState;
       this.previousState = null;

@@ -1,6 +1,7 @@
 /**
  * @fileoverview Leaderboard — persists top scores to localStorage, supports
  * rank calculation, high-score detection, and capped entry management (max 50).
+ * Scores are saved automatically: there is no name entry.
  */
 
 class Leaderboard {
@@ -25,12 +26,12 @@ class Leaderboard {
     } catch (e) {}
   }
 
-  addScore(name, score) {
+  addScore(score) {
     const scores = this.getScores();
+    const now = new Date();
     scores.push({
-      name: name.trim().substring(0, 20) || 'Anonymous',
       score: score,
-      date: new Date().toLocaleDateString()
+      date: now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
     scores.sort((a, b) => b.score - a.score);
     if (scores.length > this.maxEntries) {

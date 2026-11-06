@@ -281,23 +281,6 @@ html, body {
   box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
 }
 
-/* ===== Name Input ===== */
-#player-name {
-  width: 100%;
-  padding: 12px 16px;
-  font-size: 1rem;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  margin: 12px 0;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-#player-name:focus {
-  border-color: #3498db;
-}
-
 /* ===== Leaderboard ===== */
 .leaderboard-panel {
   width: 90vw;

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Entry Point & UI — bootstraps the game, wires DOM overlays and
- * button handlers, manages the score HUD, name-entry modal, leaderboard view,
+ * button handlers, manages the score HUD, automatic leaderboard saving, leaderboard view,
  * and responsive canvas resizing.
  */
 
@@ -20,10 +20,8 @@
   const medalRow = document.getElementById('medal-row');
   const medalEmoji = document.getElementById('medal-emoji');
 
-  const nameModal = document.getElementById('name-modal');
-  const nameScore = document.getElementById('name-score');
-  const playerNameInput = document.getElementById('player-name');
-  const btnSaveName = document.getElementById('btn-save-name');
+  const rankRow = document.getElementById('rank-row');
+  const rankValue = document.getElementById('rank-value');
 
   const leaderboardScreen = document.getElementById('leaderboard-screen');
   const leaderboardBody = document.getElementById('leaderboard-body');
@@ -37,9 +35,8 @@
   const musicSlider = document.getElementById('music-volume');
   const sfxSlider = document.getElementById('sfx-volume');
 
-  let pendingNameScore = 0;
-  let hasPromptedName = false;
-  let nameEntryTimeout = null;
+  let savedThisRun = false;
+  let lastRank = 0;
 
   function resizeCanvas() {
     const rect = container.getBoundingClientRect();
@@ -54,9 +51,8 @@
 
   game.onStateChange = (state) => {
     if (state === STATES.PLAYING) {
-      hasPromptedName = false;
-      clearTimeout(nameEntryTimeout);
-      nameEntryTimeout = null;
+      savedThisRun = false;
+      lastRank = 0;
     }
     updateUI(state);
   };
@@ -103,8 +99,6 @@
   game.input.onMenu = () => {
     if (game.state === STATES.LEADERBOARD) {
       game.hideLeaderboard();
-    } else if (game.state === STATES.NAME_ENTRY) {
-      game.restoreState();
     }
   };
 
@@ -112,7 +106,6 @@
     // Hide all overlays first
     menuScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
-    nameModal.classList.add('hidden');
     leaderboardScreen.classList.add('hidden');
 
     if (state === STATES.MENU) {
@@ -138,38 +131,23 @@
         medalRow.classList.add('hidden');
       }
 
-      // Check for leaderboard entry
-      if (game.leaderboard.isHighScore(game.score) && !hasPromptedName) {
-        hasPromptedName = true;
-        pendingNameScore = game.score;
-        clearTimeout(nameEntryTimeout);
-        nameEntryTimeout = setTimeout(() => {
-          if (game.state === STATES.DEAD) {
-            showNameEntry(game.score);
-          }
-        }, 600);
+      // Save to the leaderboard automatically (once per run, no name needed)
+      if (!savedThisRun) {
+        savedThisRun = true;
+        if (game.leaderboard.isHighScore(game.score)) {
+          lastRank = game.leaderboard.addScore(game.score);
+        }
       }
-    } else if (state === STATES.NAME_ENTRY) {
-      nameModal.classList.remove('hidden');
-      playerNameInput.focus();
-      playerNameInput.select();
+      if (lastRank > 0) {
+        rankValue.textContent = '#' + lastRank;
+        rankRow.classList.remove('hidden');
+      } else {
+        rankRow.classList.add('hidden');
+      }
     } else if (state === STATES.LEADERBOARD) {
       leaderboardScreen.classList.remove('hidden');
       renderLeaderboard();
     }
-  }
-
-  function showNameEntry(score) {
-    nameScore.textContent = score;
-    playerNameInput.value = '';
-    game.showNameEntry();
-  }
-
-  function saveName() {
-    const name = playerNameInput.value.trim();
-    if (!name) return;
-    game.leaderboard.addScore(name, pendingNameScore);
-    game.restoreState();
   }
 
   function showLeaderboard() {
@@ -182,7 +160,7 @@
 
     if (scores.length === 0) {
       const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="4" style="padding:24px;color:#999;">No scores yet. Go play!</td>`;
+      row.innerHTML = `<td colspan="3" style="padding:24px;color:#999;">No scores yet. Go play!</td>`;
       leaderboardBody.appendChild(row);
       return;
     }
@@ -197,20 +175,13 @@
       else if (rank === 2) rankDisplay = '🥈 2';
       else if (rank === 3) rankDisplay = '🥉 3';
 
-      row.innerHTML = `
-        <td>${rankDisplay}</td>
-        <td>${escapeHtml(entry.name)}</td>
-        <td>${entry.score}</td>
-        <td>${entry.date}</td>
-      `;
+      [rankDisplay, entry.score, entry.date].forEach((value) => {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.appendChild(cell);
+      });
       leaderboardBody.appendChild(row);
     });
-  }
-
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 
   // Button handlers
@@ -224,21 +195,6 @@
   btnLeaderboard.addEventListener('click', (e) => {
     e.stopPropagation();
     showLeaderboard();
-  });
-
-  btnSaveName.addEventListener('click', (e) => {
-    e.stopPropagation();
-    saveName();
-  });
-
-  playerNameInput.addEventListener('keydown', (e) => {
-    e.stopPropagation();
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      saveName();
-    } else if (e.key === 'Escape') {
-      game.restoreState();
-    }
   });
 
   btnCloseLeaderboard.addEventListener('click', (e) => {

@@ -12,11 +12,12 @@ A polished, browser-based clone of the classic Flappy Bird game, built entirely 
 - **Responsive canvas rendering** that adapts to any screen size (desktop, tablet, mobile)
 - **Procedural pipe generation** with randomized gap positions
 - **Keyboard, mouse and touch support** - play with Space, Arrow Up, Enter, mouse clicks or screen taps
-- **Persistent local leaderboard** via `localStorage` with player names and dates
+- **Persistent local leaderboard** via `localStorage`: every run that scores is saved automatically with its date and time, no name typing
 - **Medal system** - earn 🥉, 🥈, or 🥇 based on your score
 - **Sound & music** - flap, score, hit and game-over effects plus a looping background track, with separate music/effects volume sliders and a mute toggle (all remembered in `localStorage`)
 - **High-score tracking** saved across browser sessions
-- **Clean, animated UI** with overlays for menu, game over, name entry, and leaderboard
+- **Pixel-art bird** - an original 16x14 sprite with a two-frame wing flap
+- **Clean, animated UI** with overlays for menu, game over and leaderboard
 - **Zero dependencies** - pure vanilla JS, HTML, and CSS
 
 ---
@@ -28,7 +29,7 @@ A polished, browser-based clone of the classic Flappy Bird game, built entirely 
 | Input | Action |
 |-------|--------|
 | `Space`, `↑` (Arrow Up), `Enter` | Flap / Start / Restart |
-| `Escape` | Close leaderboard or name entry |
+| `Escape` | Close leaderboard |
 | `M` or 🔊 button | Mute / unmute all sound |
 | 🎚️ button | Show music and effects volume sliders |
 | Mouse click (left) | Flap / Start / Restart |
@@ -103,23 +104,22 @@ MENU        →  Title screen, floating bird animation
 PLAYING     →  Active gameplay with physics and scoring
 DEAD        →  Bird drops to the ground, game over screen with score summary
 LEADERBOARD →  Overlay showing top scores
-NAME_ENTRY  →  Modal to enter name for a new high score
 ```
 
-Transitions are driven by player input or game events (collisions). `previousState` is stored when entering modal states so the game can cleanly return afterward.
+Transitions are driven by player input or game events (collisions). `previousState` is stored when the leaderboard opens so closing it returns to the previous screen.
 
 ### Module Breakdown
 
 | Module | File | Responsibility |
 |--------|------|----------------|
 | **Game Engine** | `js/game.js` | State machine, main loop, physics scheduling, scoring, best-score persistence, canvas resizing |
-| **Bird** | `js/bird.js` | Bird entity: gravity, flapping, rotation, collision radius, menu idle float, and vector-art rendering |
+| **Bird** | `js/bird.js` | Bird entity: gravity, flapping, rotation, collision radius, menu idle float, and pixel-art sprite rendering |
 | **Pipe Manager** | `js/pipe.js` | Pipe pair spawning, gap randomization, off-screen culling, circle-rectangle collision detection, and pipe rendering |
 | **Ground** | `js/ground.js` | Infinitely scrolling ground tiles with grass, dirt speckles, and tile seams |
-| **Input** | `js/input.js` | Keyboard, mouse, and touch event handling; maps inputs to flap/start/restart/menu actions and the `M` mute shortcut; ignores keys typed into the name field |
+| **Input** | `js/input.js` | Keyboard, mouse, and touch event handling; maps inputs to flap/start/restart/menu actions and the `M` mute shortcut; ignores keys while a volume slider has focus |
 | **Leaderboard** | `js/leaderboard.js` | `localStorage` CRUD for scores, ranking, high-score checking, top-N retrieval |
 | **Sound** | `js/audio.js` | Loads `public/sounds/*`, music/effects volume channels, mute + volume persistence, first-gesture unlock, anti-overlap limits, synthesized fallbacks |
-| **Main / UI** | `js/main.js` | DOM overlay wiring, button handlers, name-entry modal, leaderboard rendering, HUD updates, canvas resize glue |
+| **Main / UI** | `js/main.js` | DOM overlay wiring, button handlers, automatic leaderboard saving, leaderboard rendering, HUD updates, canvas resize glue |
 
 ### Rendering Pipeline
 
@@ -128,7 +128,7 @@ Each frame the canvas is cleared and the following layers are drawn back-to-fron
 1. **Sky** - a vertical linear gradient (`#4facfe` → `#00f2fe` → `#4facfe`)
 2. **Pipes** - all active pipe pairs, top and bottom with caps and shadows
 3. **Ground** - scrolling dirt tile pattern with grass top
-4. **Bird** - rotated, procedurally drawn vector bird (body, eye, beak, wing, tail)
+4. **Bird** - pixel-art sprite (defined as text rows in `js/bird.js`), drawn with smoothing off so pixels stay sharp, and rotated with its speed
 
 The canvas uses `devicePixelRatio` scaling so lines and shapes stay crisp on high-DPI displays.
 
@@ -173,8 +173,8 @@ Scoring occurs when the bird's X position passes the right edge of a pipe pair.
 
 - Scores are stored in `localStorage` under the key `flappy_bird_leaderboard`.
 - The leaderboard keeps up to **50 entries**, sorted descending by score.
-- When a run scores above 0 and makes the top 50, a name-entry modal appears.
-- Entries include: `name`, `score`, and `date` (locale-formatted).
+- When a run scores above 0 and makes the top 50, it is saved automatically and the game over screen shows its rank. There is no name entry.
+- Entries include `score` and `date` (local date and time). Entries saved by older versions may also carry a `name`, which is ignored.
 - The **Clear All** button in the leaderboard UI wipes the stored data after confirmation.
 
 ### Audio
@@ -227,7 +227,7 @@ flappybird/
 │   └── style.css           # Layout, animations, panel styling, responsive rules
 ├── js/
 │   ├── game.js             # Core engine: loop, states, physics scheduler
-│   ├── bird.js             # Bird entity, flap physics, vector drawing
+│   ├── bird.js             # Bird entity, flap physics, pixel-art sprite
 │   ├── pipe.js             # Pipe pairs, spawning, collision, rendering
 │   ├── ground.js           # Scrolling tiled ground renderer
 │   ├── input.js            # Keyboard, mouse, and touch input mapping
@@ -251,7 +251,7 @@ flappybird/
 
 - **Original concept**: Dong Nguyen - *Flappy Bird* (2013)
 - **Clone implementation**: Built with vanilla JavaScript, HTML5 Canvas, and CSS3
-- **No external libraries** - all graphics are procedurally drawn via the Canvas 2D API
+- **No external libraries** - all graphics are drawn in code with the Canvas 2D API, including the original pixel-art bird
 - **Sounds and music** are original, synthesized from scratch by `tools/generate_sounds.py`, so they carry no third-party copyright
 
 ---
