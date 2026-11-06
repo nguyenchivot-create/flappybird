@@ -14,6 +14,9 @@
  * HTMLMediaElement.volume, so per-channel volume would not work on iPhone.
  */
 
+// Updated by tools/bump_version.py so browsers fetch new sound files after a release.
+const ASSET_VERSION = '20261106193645';
+
 const SOUND_FILES = {
   flap: 'public/sounds/flap.wav',
   score: 'public/sounds/score.wav',
@@ -129,7 +132,7 @@ class SoundManager {
 
   fetchSound(name) {
     if (!window.fetch) return Promise.resolve();
-    return fetch(SOUND_FILES[name])
+    return fetch(SOUND_FILES[name] + '?v=' + ASSET_VERSION)
       .then((res) => {
         if (!res.ok) throw new Error(res.status);
         return res.arrayBuffer();

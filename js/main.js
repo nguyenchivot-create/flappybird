@@ -49,6 +49,12 @@
   const game = new Game(canvas);
   window.game = game;
 
+  // Start drawing right away, before any UI wiring below. If an overlay element
+  // is ever missing, the game still renders instead of leaving a black screen.
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  game.init();
+
   game.onStateChange = (state) => {
     if (state === STATES.PLAYING) {
       savedThisRun = false;
@@ -218,11 +224,5 @@
   setVH();
   window.addEventListener('resize', setVH);
 
-  // Resize handling
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  // Start
-  game.init();
   updateUI(STATES.MENU);
 })();

@@ -78,6 +78,14 @@ The game is hosted on **GitHub Pages** from the `main` branch (root folder):
 
 Every push to `main` redeploys it automatically within a minute or two. The empty `.nojekyll` file tells GitHub Pages to serve the files as-is.
 
+**Before every release, run:**
+
+```bash
+python3 tools/bump_version.py
+```
+
+It stamps a new `?v=` version on every CSS/JS link in `index.html` and on the sound file URLs in `js/audio.js`. Phones (iPhone Safari especially) cache these files; without a new version a phone can mix a new `index.html` with an old cached script, which can break the page.
+
 It is a plain static site, so it can also be hosted anywhere else. A `vercel.json` is included for Vercel: it serves `index.html` at `/` and every other path as a static file.
 
 ---
@@ -201,7 +209,7 @@ Scoring occurs when the bird's X position passes the right edge of a pipe pair.
 3. For seamless music, export the loop to an exact length (for example a whole number of bars). Leading encoder silence of up to 100 ms is skipped automatically.
 4. To use different names or formats (e.g. `.ogg`), edit the paths in `SOUND_FILES` at the top of `js/audio.js`. `.ogg` does not decode in older Safari versions, so `.mp3`, `.m4a` or `.wav` are the safest choices.
 5. To change how often an effect may repeat, edit `SFX_LIMITS` in the same file.
-6. Hard-refresh the browser (`Ctrl+Shift+R` / `Cmd+Shift+R`) because sound files are cached.
+6. Run `python3 tools/bump_version.py` before pushing, so players' browsers download the new files instead of using cached ones. Locally, a hard refresh (`Ctrl+Shift+R` / `Cmd+Shift+R`) is enough.
 
 To get the original sounds back, run `python3 tools/generate_sounds.py` (needs Python 3; `ffmpeg` for the MP3).
 
@@ -237,7 +245,8 @@ flappybird/
 ├── public/
 │   └── sounds/             # flap.wav, score.wav, hit.wav, die.wav, background.mp3
 ├── tools/
-│   └── generate_sounds.py  # Regenerates the original sound files
+│   ├── generate_sounds.py  # Regenerates the original sound files
+│   └── bump_version.py     # Stamps a new cache-busting version before a release
 ├── ARTICLE.md              # Write-up about building the game
 ├── publish_to_notion.py    # Publishes ARTICLE.md to Notion (needs NOTION_API_KEY)
 ├── vercel.json             # Vercel static-site routing config
